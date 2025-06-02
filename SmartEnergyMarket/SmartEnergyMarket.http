@@ -1,0 +1,6 @@
+@SmartEnergyMarket_HostAddress = http://localhost:5081
+
+GET {{SmartEnergyMarket_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
