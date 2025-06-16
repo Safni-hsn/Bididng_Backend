@@ -5,12 +5,16 @@ using Microsoft.IdentityModel.Tokens;
 using SmartEnergyMarket.Data;
 using SmartEnergyMarket.Models;
 using System.Text;
+using SmartEnergyMarket.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    
+builder.Services.AddScoped<SurplusService>();
 
 // Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()

@@ -12,5 +12,8 @@ namespace SmartEnergyMarket.Data
 
         // ✅ Add this to support historical usage storage
         public DbSet<UserEnergy> UserEnergies { get; set; }
+        public DbSet<SurplusBlock> SurplusBlocks { get; set; }
+       public DbSet<SurplusBid> SurplusBids { get; set; }
+
     }
 }

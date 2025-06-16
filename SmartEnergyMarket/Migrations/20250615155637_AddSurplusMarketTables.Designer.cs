@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartEnergyMarket.Data;
@@ -11,9 +12,11 @@ using SmartEnergyMarket.Data;
 namespace SmartEnergyMarket.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250615155637_AddSurplusMarketTables")]
+    partial class AddSurplusMarketTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -218,34 +221,6 @@ namespace SmartEnergyMarket.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SmartEnergyMarket.Models.SurplusBlock", b =>
-                {
-                    b.Property<string>("BlockId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AllocatedToUserId")
-                        .HasColumnType("text");
-
-                    b.Property<double>("AvailableEnergyKwh")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("BlockSizeKwh")
-                        .HasColumnType("double precision");
-
-                    b.Property<DateTime>("BlockTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsAllocated")
-                        .HasColumnType("boolean");
-
-                    b.Property<double>("MinBidPricePerKwh")
-                        .HasColumnType("double precision");
-
-                    b.HasKey("BlockId");
-
-                    b.ToTable("SurplusBlocks");
-                });
-
             modelBuilder.Entity("SmartEnergyMarket.Models.UserEnergy", b =>
                 {
                     b.Property<int>("Id")
@@ -290,6 +265,28 @@ namespace SmartEnergyMarket.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SurplusBids");
+                });
+
+            modelBuilder.Entity("SurplusBlock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("EnergyKWh")
+                        .HasColumnType("double precision");
+
+                    b.Property<bool>("IsAllocated")
+                        .HasColumnType("boolean");
+
+                    b.Property<double>("MinBidPrice")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SurplusBlocks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

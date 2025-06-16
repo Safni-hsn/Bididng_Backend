@@ -112,3 +112,4 @@ C:\Users\Safni The Man\Desktop\Bididng_Backend\smartEnergyMarket\obj\Debug\net8.
 C:\Users\Safni The Man\Desktop\Bididng_Backend\smartEnergyMarket\obj\Debug\net8.0\SmartEnergyMarket.pdb
 C:\Users\Safni The Man\Desktop\Bididng_Backend\smartEnergyMarket\obj\Debug\net8.0\SmartEnergyMarket.genruntimeconfig.cache
 C:\Users\Safni The Man\Desktop\Bididng_Backend\smartEnergyMarket\obj\Debug\net8.0\ref\SmartEnergyMarket.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\obj\Debug\net8.0\SmartEnergyMarket.sourcelink.json
