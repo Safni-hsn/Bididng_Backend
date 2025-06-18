@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartEnergyMarket.Data;
 using SmartEnergyMarket.Models;
+using SurplusBidRequest.DTOs;
 
 namespace SmartEnergyMarket.Controllers
 {
@@ -25,7 +26,7 @@ namespace SmartEnergyMarket.Controllers
 
         // Endpoint to bid on a block
         [HttpPost("bid")]
-        public IActionResult BidForBlock([FromBody] SurplusBidRequest bid)
+        public IActionResult BidForBlock([FromBody] SurplusBidRequestDto bid)
         {
             // Logic goes here
             return Ok();

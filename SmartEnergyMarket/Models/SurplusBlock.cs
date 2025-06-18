@@ -19,6 +19,10 @@ public class SurplusBlock
 
     public double MinBidPricePerKwh { get; set; }
 
+    public DateTime BlackoutStartTime { get; set; }
+    public DateTime BlackoutEndTime { get; set; }
+
+
     public DateTime BlockTime { get; set; }
 
     public bool IsAllocated { get; set; } = false;

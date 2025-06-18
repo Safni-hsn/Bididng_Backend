@@ -1,5 +1,8 @@
-public class SurplusBidRequest
+namespace SmartEnergyMarket.Models
 {
-    public int BlockId { get; set; }
-    public double BidPrice { get; set; }
+    public class SurplusBidRequestModel
+    {
+        public int BlockId { get; set; }
+        public double BidPrice { get; set; }
+    }
 }
