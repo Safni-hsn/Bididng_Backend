@@ -62,48 +62,59 @@ namespace SmartEnergyMarket.Services
         }
 
 
-       public async Task<List<SurplusBlock>> GetBlocksForBlackoutAsync(DateTime blackoutStart, DateTime blackoutEnd)
-{
-    return await _context.SurplusBlocks
-        .Where(b => b.BlackoutStartTime == blackoutStart && b.BlackoutEndTime == blackoutEnd)
-        .ToListAsync();
-}
+        public async Task<List<SurplusBlock>> GetBlocksForBlackoutAsync(DateTime blackoutStart, DateTime blackoutEnd)
+        {
+            return await _context.SurplusBlocks
+                .Where(b => b.BlackoutStartTime == blackoutStart && b.BlackoutEndTime == blackoutEnd)
+                .ToListAsync();
+        }
 
         public async Task<string> SubmitBidAsync(string userId, SurplusBidRequestDto bidRequest)
         {
-            var block = await _context.SurplusBlocks.FirstOrDefaultAsync(b => b.BlockId == bidRequest.BlockId);
+            Console.WriteLine($"🔍 Extracted UserId from JWT: {userId}");
+
+            // ✅ Step 1: Check if user exists
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return "❌ User not found in database.";
+            }
+
+            // ✅ Step 2: Check if block exists
+            var block = await _context.SurplusBlocks.FindAsync(bidRequest.BlockId);
             if (block == null)
-                return "Block not found.";
+            {
+                return "❌ Surplus block not found.";
+            }
 
-            if (bidRequest.BidAmountKwh <= 0 || bidRequest.PricePerKwh < block.MinBidPricePerKwh)
-                return "Invalid bid amount or price.";
-
-            var existingBid = await _context.SurplusBids
-                .FirstOrDefaultAsync(b => b.UserId == userId && b.BlockId == bidRequest.BlockId);
-            if (existingBid != null)
-                return "You have already bid for this block.";
-
-            var newBid = new SurplusBid
+            // ✅ Step 3: Create and save the bid
+            var bid = new SurplusBid
             {
                 BlockId = block.BlockId,
-                UserId = userId,
+                UserId = user.Id,
                 BidAmountKwh = bidRequest.BidAmountKwh,
                 PricePerKwh = bidRequest.PricePerKwh,
                 BidTime = DateTime.UtcNow
             };
 
-            _context.SurplusBids.Add(newBid);
+            _context.SurplusBids.Add(bid);
             await _context.SaveChangesAsync();
 
             return "Bid submitted successfully.";
         }
 
-        public async Task<List<SurplusBid>> GetAllBidsAsync()
-        {
-            return await _context.SurplusBids
-                .Include(b => b.Block)
-                .Include(b => b.User)
-                .ToListAsync();
-        }
+
+       
+        
+        public async Task<List<SurplusBid>> GetBidsByBlackoutAsync(DateTime blackoutStart, DateTime blackoutEnd)
+{
+    return await _context.SurplusBids
+        .Include(b => b.Block)
+        .Include(b => b.User)
+        .Where(b => b.Block.BlackoutStartTime == blackoutStart && b.Block.BlackoutEndTime == blackoutEnd)
+        .OrderByDescending(b => b.PricePerKwh) // Highest price first
+        .ToListAsync();
+}
+
     }
 }
