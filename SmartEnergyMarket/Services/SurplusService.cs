@@ -104,17 +104,55 @@ namespace SmartEnergyMarket.Services
         }
 
 
-       
-        
+
+
         public async Task<List<SurplusBid>> GetBidsByBlackoutAsync(DateTime blackoutStart, DateTime blackoutEnd)
+        {
+            return await _context.SurplusBids
+                .Include(b => b.Block)
+                .Include(b => b.User)
+                .Where(b => b.Block.BlackoutStartTime == blackoutStart && b.Block.BlackoutEndTime == blackoutEnd)
+                .OrderByDescending(b => b.PricePerKwh) // Highest price first
+                .ToListAsync();
+        }
+
+        public async Task<List<BlockWithBidsDto>> GetBidsGroupedByBlockAsync(DateTime blackoutStart, DateTime blackoutEnd)
 {
-    return await _context.SurplusBids
-        .Include(b => b.Block)
-        .Include(b => b.User)
-        .Where(b => b.Block.BlackoutStartTime == blackoutStart && b.Block.BlackoutEndTime == blackoutEnd)
-        .OrderByDescending(b => b.PricePerKwh) // Highest price first
+    var blocks = await _context.SurplusBlocks
+        .Where(b => b.BlackoutStartTime == blackoutStart && b.BlackoutEndTime == blackoutEnd)
         .ToListAsync();
+
+    var blockIds = blocks.Select(b => b.BlockId).ToList();
+
+    var bids = await _context.SurplusBids
+        .Where(b => blockIds.Contains(b.BlockId))
+        .Include(b => b.User)
+        .OrderByDescending(b => b.PricePerKwh)
+        .ToListAsync();
+
+    var result = blocks.Select(block => new BlockWithBidsDto
+    {
+        BlockId = Guid.Parse(block.BlockId),
+        StartTime = block.BlackoutStartTime,
+        EndTime = block.BlackoutEndTime,
+        Capacity = block.BlockSizeKwh,
+        Bids = bids
+            .Where(b => b.BlockId == block.BlockId)
+            .Select(b => new BidDto
+            {
+                UserName = b.User.UserName,
+                PricePerKwh = b.PricePerKwh,
+                BidAmountKwh = b.BidAmountKwh,
+                BidTime = b.BidTime
+            }).ToList()
+    }).ToList();
+
+    return result;
 }
+
+        
+
+
 
     }
 }

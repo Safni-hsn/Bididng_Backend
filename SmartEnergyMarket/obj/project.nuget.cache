@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "gZDb+VCyMqmqAZ0j/jbVsAMEqgviPRY89fhqV7LvAN6KN/RJeVi8eX73+tRDrgEtXEs1+WMIzqedXKmLJ0VNzQ==",
+  "dgSpecHash": "yGi8HhQuhzzceZBJBmDPVTKgkArFb7H8tTsFVgBxOBv4WA0rufzK2lLH5DB03ula3trpditg0tQjLxhehS0QHQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\SmartEnergyMarket.csproj",
+  "projectFilePath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\smartenergyMarket\\SmartEnergyMarket.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Safni The Man\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Safni The Man\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.0\\microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",

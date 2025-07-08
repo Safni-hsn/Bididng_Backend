@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using SurplusBidRequest.DTOs;
+using SmartEnergyMarket.DTOs;
 
 
 
@@ -21,16 +22,17 @@ namespace SmartEnergyMarket.Controllers
         }
 
         // POST: api/surplus/generate-blocks?remainingEnergy=100
-        [Authorize(Roles = "Admin")]
-        [HttpPost("generate-blocks")]
-        public async Task<IActionResult> GenerateBlocks(
-      [FromQuery] double remainingEnergy,
-      [FromQuery] DateTime blackoutStart,
-      [FromQuery] DateTime blackoutEnd)
-        {
-            var blocks = await _surplusService.GenerateSurplusBlocksAsync(remainingEnergy, blackoutStart, blackoutEnd);
-            return Ok(blocks);
-        }
+        
+       [HttpPost("generate-blocks")]
+public async Task<IActionResult> GenerateBlocks([FromBody] GenerateBlocksDto dto)
+{
+    await _surplusService.GenerateSurplusBlocksAsync(
+        dto.RemainingEnergy, dto.BlackoutStart, dto.BlackoutEnd
+    );
+
+    return Ok(new { message = "Blocks generated successfully." });
+}
+
 
 [Authorize]
 [HttpGet("blocks")]
@@ -75,15 +77,13 @@ Console.WriteLine($"✅ Extracted UserId from JWT: {userId}");
 
 
 
-       [Authorize(Roles = "Admin")]
-[HttpGet("bids-by-blackout")]
-public async Task<IActionResult> GetBidsByBlackout(
-    [FromQuery] DateTime blackoutStart,
-    [FromQuery] DateTime blackoutEnd)
+  [HttpGet("bids-by-blackout")]
+public async Task<IActionResult> GetBidsByBlackout([FromQuery] DateTime blackoutStart, [FromQuery] DateTime blackoutEnd)
 {
     var bids = await _surplusService.GetBidsByBlackoutAsync(blackoutStart, blackoutEnd);
     return Ok(bids);
 }
+
 
     }
 }
