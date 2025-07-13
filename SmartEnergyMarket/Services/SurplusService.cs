@@ -117,40 +117,66 @@ namespace SmartEnergyMarket.Services
         }
 
         public async Task<List<BlockWithBidsDto>> GetBidsGroupedByBlockAsync(DateTime blackoutStart, DateTime blackoutEnd)
-{
-    var blocks = await _context.SurplusBlocks
-        .Where(b => b.BlackoutStartTime == blackoutStart && b.BlackoutEndTime == blackoutEnd)
-        .ToListAsync();
+        {
+            var blocks = await _context.SurplusBlocks
+                .Where(b => b.BlackoutStartTime == blackoutStart && b.BlackoutEndTime == blackoutEnd)
+                .ToListAsync();
 
-    var blockIds = blocks.Select(b => b.BlockId).ToList();
+            var blockIds = blocks.Select(b => b.BlockId).ToList();
+
+            var bids = await _context.SurplusBids
+                .Where(b => blockIds.Contains(b.BlockId))
+                .Include(b => b.User)
+                .OrderByDescending(b => b.PricePerKwh)
+                .ToListAsync();
+
+            var result = blocks.Select(block => new BlockWithBidsDto
+            {
+                BlockId = Guid.Parse(block.BlockId),
+                StartTime = block.BlackoutStartTime,
+                EndTime = block.BlackoutEndTime,
+                Capacity = block.BlockSizeKwh,
+                Bids = bids
+                    .Where(b => b.BlockId == block.BlockId)
+                    .Select(b => new BidDto
+                    {
+                        UserName = b.User.UserName,
+                        PricePerKwh = b.PricePerKwh,
+                        BidAmountKwh = b.BidAmountKwh,
+                        BidTime = b.BidTime
+                    }).ToList()
+            }).ToList();
+
+            return result;
+        }
+
+public async Task<bool> AllocateWinningBid(string blockId)
+{
+    var block = await _context.SurplusBlocks.FindAsync(blockId);
+    if (block == null || block.IsAllocated) return false;
 
     var bids = await _context.SurplusBids
-        .Where(b => blockIds.Contains(b.BlockId))
-        .Include(b => b.User)
+        .Where(b => b.BlockId == blockId)
         .OrderByDescending(b => b.PricePerKwh)
+        .ThenBy(b => b.BidTime)
         .ToListAsync();
 
-    var result = blocks.Select(block => new BlockWithBidsDto
-    {
-        BlockId = Guid.Parse(block.BlockId),
-        StartTime = block.BlackoutStartTime,
-        EndTime = block.BlackoutEndTime,
-        Capacity = block.BlockSizeKwh,
-        Bids = bids
-            .Where(b => b.BlockId == block.BlockId)
-            .Select(b => new BidDto
-            {
-                UserName = b.User.UserName,
-                PricePerKwh = b.PricePerKwh,
-                BidAmountKwh = b.BidAmountKwh,
-                BidTime = b.BidTime
-            }).ToList()
-    }).ToList();
+    var winningBid = bids.FirstOrDefault();
+    if (winningBid == null) return false;
 
-    return result;
+    // Allocate the block
+    block.IsAllocated = true;
+    block.AllocatedToUserId = winningBid.UserId;
+    block.WinningBidId = winningBid.Id.ToString();
+
+
+    await _context.SaveChangesAsync();
+
+    return true;
 }
 
-        
+
+
 
 
 
