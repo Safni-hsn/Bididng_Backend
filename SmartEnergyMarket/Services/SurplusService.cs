@@ -21,45 +21,76 @@ namespace SmartEnergyMarket.Services
             _context = context;
         }
 
-        public async Task<List<SurplusBlock>> GenerateSurplusBlocksAsync(
-    double remainingEnergyKwh, DateTime blackoutStartTime, DateTime blackoutEndTime)
+        //     public async Task<List<SurplusBlock>> GenerateSurplusBlocksAsync(
+        // double remainingEnergyKwh, DateTime blackoutStartTime, DateTime blackoutEndTime)
+        //     {
+        //         var blocks = new List<SurplusBlock>();
+        //         var rand = new Random();
+
+        //         int numberOfBlocks = rand.Next(3, 8); // Random between 3 and 7 blocks
+        //         double totalAssigned = 0;
+
+        //         for (int i = 0; i < numberOfBlocks; i++)
+        //         {
+        //             double remaining = remainingEnergyKwh - totalAssigned;
+
+        //             // If it's the last block, assign all remaining energy
+        //             double blockSize = (i == numberOfBlocks - 1)
+        //                 ? Math.Round(remaining, 2)
+        //                 : Math.Round(rand.NextDouble() * (remaining / 2) + 5, 2); // Random block size ≥5 kWh
+
+        //             totalAssigned += blockSize;
+
+        //             var block = new SurplusBlock
+        //             {
+        //                 BlockId = Guid.NewGuid().ToString(),
+        //                 BlockSizeKwh = blockSize,
+        //                 AvailableEnergyKwh = blockSize,
+        //                 MinBidPricePerKwh = Math.Round(rand.NextDouble() * 3 + 7, 2), // ₹7.00 - ₹10.00
+        //                 BlockTime = DateTime.UtcNow,
+        //                 BlackoutStartTime = blackoutStartTime,
+        //                 BlackoutEndTime = blackoutEndTime,
+        //                 IsAllocated = false
+        //             };
+
+        //             _context.SurplusBlocks.Add(block);
+        //             blocks.Add(block);
+        //         }
+
+        //         await _context.SaveChangesAsync();
+        //         return blocks;
+        //     }
+    
+    public async Task<List<SurplusBlock>> GenerateBlocksFromUserCountAsync(BlockGenerationRequest request)
+{
+    var random = new Random();
+    var blocks = new List<SurplusBlock>();
+
+    for (int i = 0; i < request.UserCount; i++)
+    {
+        // Random size within range and rounded to 1 decimal (e.g., 2.3)
+        double size = Math.Round(
+            request.LowerBound + random.NextDouble() * (request.UpperBound - request.LowerBound),
+            1
+        );
+
+        var block = new SurplusBlock
         {
-            var blocks = new List<SurplusBlock>();
-            var rand = new Random();
+            BlockSizeKwh = size,
+            MinBidPricePerKwh = 5.0, // Set your default or dynamic min price
+            BlackoutStartTime = request.BlackoutStartTime,
+            BlackoutEndTime = request.BlackoutEndTime,
+            BlockTime = DateTime.UtcNow
+        };
 
-            int numberOfBlocks = rand.Next(3, 8); // Random between 3 and 7 blocks
-            double totalAssigned = 0;
+        blocks.Add(block);
+        _context.SurplusBlocks.Add(block);
+    }
 
-            for (int i = 0; i < numberOfBlocks; i++)
-            {
-                double remaining = remainingEnergyKwh - totalAssigned;
+    await _context.SaveChangesAsync();
+    return blocks;
+}
 
-                // If it's the last block, assign all remaining energy
-                double blockSize = (i == numberOfBlocks - 1)
-                    ? Math.Round(remaining, 2)
-                    : Math.Round(rand.NextDouble() * (remaining / 2) + 5, 2); // Random block size ≥5 kWh
-
-                totalAssigned += blockSize;
-
-                var block = new SurplusBlock
-                {
-                    BlockId = Guid.NewGuid().ToString(),
-                    BlockSizeKwh = blockSize,
-                    AvailableEnergyKwh = blockSize,
-                    MinBidPricePerKwh = Math.Round(rand.NextDouble() * 3 + 7, 2), // ₹7.00 - ₹10.00
-                    BlockTime = DateTime.UtcNow,
-                    BlackoutStartTime = blackoutStartTime,
-                    BlackoutEndTime = blackoutEndTime,
-                    IsAllocated = false
-                };
-
-                _context.SurplusBlocks.Add(block);
-                blocks.Add(block);
-            }
-
-            await _context.SaveChangesAsync();
-            return blocks;
-        }
 
 
         public async Task<List<SurplusBlock>> GetBlocksForBlackoutAsync(DateTime blackoutStart, DateTime blackoutEnd)
@@ -150,30 +181,65 @@ namespace SmartEnergyMarket.Services
             return result;
         }
 
-public async Task<bool> AllocateWinningBid(string blockId)
-{
-    var block = await _context.SurplusBlocks.FindAsync(blockId);
-    if (block == null || block.IsAllocated) return false;
+        public async Task<bool> AllocateWinningBid(string blockId)
+        {
+            var block = await _context.SurplusBlocks.FindAsync(blockId);
+            if (block == null || block.IsAllocated) return false;
 
-    var bids = await _context.SurplusBids
-        .Where(b => b.BlockId == blockId)
-        .OrderByDescending(b => b.PricePerKwh)
-        .ThenBy(b => b.BidTime)
+            var bids = await _context.SurplusBids
+                .Where(b => b.BlockId == blockId)
+                .OrderByDescending(b => b.PricePerKwh)
+                .ThenBy(b => b.BidTime)
+                .ToListAsync();
+
+            var winningBid = bids.FirstOrDefault();
+            if (winningBid == null) return false;
+
+            // Allocate the block
+            block.IsAllocated = true;
+            block.AllocatedToUserId = winningBid.UserId;
+            block.WinningBidId = winningBid.Id.ToString();
+
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+public async Task<List<BlockWithBidInfoDto>> GetBlocksWithBidInfoAsync(DateTime blackoutStart, DateTime blackoutEnd)
+{
+    var blocks = await _context.SurplusBlocks
+        .Where(b => b.BlackoutStartTime == blackoutStart && b.BlackoutEndTime == blackoutEnd)
         .ToListAsync();
 
-    var winningBid = bids.FirstOrDefault();
-    if (winningBid == null) return false;
+    var blockIds = blocks.Select(b => b.BlockId).ToList();
 
-    // Allocate the block
-    block.IsAllocated = true;
-    block.AllocatedToUserId = winningBid.UserId;
-    block.WinningBidId = winningBid.Id.ToString();
+    // Get all related bids in one query
+    var bids = await _context.SurplusBids
+        .Where(b => blockIds.Contains(b.BlockId))
+        .ToListAsync();
 
+    var blockDtos = blocks.Select(block =>
+    {
+        var relatedBids = bids.Where(b => b.BlockId == block.BlockId).ToList();
+        var hasBids = relatedBids.Any();
+        var highestBid = hasBids ? relatedBids.Max(b => b.PricePerKwh) : (double?)null;
 
-    await _context.SaveChangesAsync();
+        return new BlockWithBidInfoDto
+        {
+            BlockId = block.BlockId,
+            BlockSizeKwh = block.BlockSizeKwh,
+            MinBidPricePerKwh = block.MinBidPricePerKwh,
+            BlackoutStartTime = block.BlackoutStartTime,
+            BlackoutEndTime = block.BlackoutEndTime,
+            HasBids = hasBids,
+            HighestBidPrice = highestBid
+        };
+    }).ToList();
 
-    return true;
+    return blockDtos;
 }
+
 
 
 

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SmartEnergyMarket")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2526ee343cc921ffb1647ef40f34ddedd5d252cc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+919bcd7e967fcad416f62a623a20b75e087c61a6")]
 [assembly: System.Reflection.AssemblyProductAttribute("SmartEnergyMarket")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SmartEnergyMarket")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

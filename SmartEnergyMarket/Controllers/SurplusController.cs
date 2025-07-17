@@ -28,26 +28,63 @@ namespace SmartEnergyMarket.Controllers
 
         // POST: api/surplus/generate-blocks?remainingEnergy=100
 
-        [HttpPost("generate-blocks")]
-        public async Task<IActionResult> GenerateBlocks([FromBody] GenerateBlocksDto dto)
-        {
-            await _surplusService.GenerateSurplusBlocksAsync(
-                dto.RemainingEnergy, dto.BlackoutStart, dto.BlackoutEnd
-            );
+        // [HttpPost("generate-blocks")]
+        // public async Task<IActionResult> GenerateBlocks([FromBody] GenerateBlocksDto dto)
+        // {
+        //     await _surplusService.GenerateSurplusBlocksAsync(
+        //         dto.RemainingEnergy, dto.BlackoutStart, dto.BlackoutEnd
+        //     );
 
-            return Ok(new { message = "Blocks generated successfully." });
-        }
+        //     return Ok(new { message = "Blocks generated successfully." });
+        // } 
+
+      [HttpPost("generate-blocks-from-iqr")]
+public async Task<IActionResult> GenerateBlocksFromIqr([FromBody] IqrResultDto dto)
+{
+    // Convert blackout times from string to DateTime
+    if (!DateTime.TryParse(dto.BlackoutStart, out var blackoutStart) ||
+        !DateTime.TryParse(dto.BlackoutEnd, out var blackoutEnd))
+    {
+        return BadRequest("Invalid blackout start or end time format.");
+    }
+
+    // Convert external data to your existing request
+    var request = new BlockGenerationRequest
+{
+    UserCount = dto.CountAboveUpperBound,
+    LowerBound = dto.UpperBound, 
+    UpperBound = dto.MaxUsage,
+
+    // ✅ Explicitly mark the times as UTC (without altering the actual time)
+    BlackoutStartTime = DateTime.SpecifyKind(blackoutStart, DateTimeKind.Utc),
+    BlackoutEndTime = DateTime.SpecifyKind(blackoutEnd, DateTimeKind.Utc)
+};
+
+    
+    Console.WriteLine("📥 Incoming IQR DTO:");
+Console.WriteLine($"🔢 UserCount: {dto.CountAboveUpperBound}");
+Console.WriteLine($"📊 UpperBound: {dto.UpperBound}, MaxUsage: {dto.MaxUsage}");
+Console.WriteLine($"🕒 BlackoutStart: {request.BlackoutStartTime}, BlackoutEnd: {dto.BlackoutEnd}");
 
 
-        [Authorize]
-        [HttpGet("blocks")]
-        public async Task<IActionResult> GetBlocks(
-            [FromQuery] DateTime blackoutStart,
-            [FromQuery] DateTime blackoutEnd)
-        {
-            var blocks = await _surplusService.GetBlocksForBlackoutAsync(blackoutStart, blackoutEnd);
-            return Ok(blocks);
-        }
+    // Reuse your existing service
+            var blocks = await _surplusService.GenerateBlocksFromUserCountAsync(request);
+    return Ok(new { Message = $"✅ {blocks.Count} blocks created from IQR.", Blocks = blocks });
+}
+
+
+
+
+       [Authorize]
+[HttpGet("blocks")]
+public async Task<IActionResult> GetBlocks(
+    [FromQuery] DateTime blackoutStart,
+    [FromQuery] DateTime blackoutEnd)
+{
+    var blocksWithInfo = await _surplusService.GetBlocksWithBidInfoAsync(blackoutStart, blackoutEnd);
+    return Ok(blocksWithInfo);
+}
+
 
 
         [Authorize]
@@ -98,11 +135,10 @@ namespace SmartEnergyMarket.Controllers
             return Ok("Block allocated to the winner.");
         }
 
-       [Authorize]
+    [Authorize]
 [HttpGet("next-bid-summary")]
 public async Task<ActionResult<NextBidSummaryDto>> GetNextBidSummary()
 {
-    // ✅ Extract userId from JWT claims
     var userId = User.Claims
         .Where(c => c.Type == ClaimTypes.NameIdentifier && Guid.TryParse(c.Value, out _))
         .Select(c => c.Value)
@@ -113,44 +149,36 @@ public async Task<ActionResult<NextBidSummaryDto>> GetNextBidSummary()
 
     var now = DateTime.UtcNow;
 
-    // ✅ Step 1: Find next upcoming blackout block
-    var today = DateTime.UtcNow.Date;
+    // ✅ Step 1: Find next blackout block that user has bid on and is upcoming
+    var nextUserBidBlock = await _context.SurplusBids
+        .Where(b => b.UserId == userId && b.Block.BlackoutStartTime > now && !b.Block.IsAllocated)
+        .OrderBy(b => b.Block.BlackoutStartTime)
+        .Select(b => b.Block)
+        .FirstOrDefaultAsync();
 
-var nextBlock = await _context.SurplusBlocks
-    .Where(b =>
-        b.BlackoutStartTime.Date == today &&               // 🔹 Only today's blackouts
-        b.BlackoutEndTime > DateTime.UtcNow &&             // 🔹 Still upcoming
-        !b.IsAllocated                                     // 🔹 Not already allocated
-    )
-    .OrderBy(b => b.BlackoutStartTime)                     // 🔹 Earliest next
-    .FirstOrDefaultAsync();
-
-
-    if (nextBlock == null)
-    {
+    if (nextUserBidBlock == null)
         return Ok(new NextBidSummaryDto { HasBid = false });
-    }
 
     // ✅ Step 2: Get all bids for that block
     var bids = await _context.SurplusBids
-        .Where(b => b.BlockId == nextBlock.BlockId)
+        .Where(b => b.BlockId == nextUserBidBlock.BlockId)
         .ToListAsync();
-
-        
 
     var userBid = bids.FirstOrDefault(b => b.UserId == userId);
     var highestBid = bids.OrderByDescending(b => b.PricePerKwh).FirstOrDefault();
 
     var dto = new NextBidSummaryDto
     {
-        NextBlackoutStart = nextBlock.BlackoutStartTime,
+        NextBlackoutStart = nextUserBidBlock.BlackoutStartTime,
         YourBidPrice = userBid?.PricePerKwh,
         HighestBidPrice = highestBid?.PricePerKwh,
-        HasBid = userBid != null
+        HasBid = true,
+        BlockSizeKwh = nextUserBidBlock.BlockSizeKwh
     };
 
     return Ok(dto);
 }
+
 
 
 
