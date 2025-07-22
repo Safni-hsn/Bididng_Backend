@@ -113,3 +113,11 @@ C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\obj\Debug\net8.
 C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\obj\Debug\net8.0\SmartEnergyMarket.pdb
 C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\obj\Debug\net8.0\SmartEnergyMarket.genruntimeconfig.cache
 C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\obj\Debug\net8.0\ref\SmartEnergyMarket.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\Safni The Man\Desktop\Bididng_Backend\SmartEnergyMarket\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll

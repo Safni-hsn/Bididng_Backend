@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\SmartEnergyMarket.csproj": {}
+    "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartenergyMarket\\SmartEnergyMarket.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\SmartEnergyMarket.csproj": {
+    "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartenergyMarket\\SmartEnergyMarket.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\SmartEnergyMarket.csproj",
+        "projectUniqueName": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartenergyMarket\\SmartEnergyMarket.csproj",
         "projectName": "SmartEnergyMarket",
-        "projectPath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\SmartEnergyMarket.csproj",
+        "projectPath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartenergyMarket\\SmartEnergyMarket.csproj",
         "packagesPath": "C:\\Users\\Safni The Man\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\obj\\",
+        "outputPath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartenergyMarket\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Safni The Man\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -56,6 +56,10 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.4, )"
+            },
+            "Microsoft.AspNetCore.SignalR": {
+              "target": "Package",
+              "version": "[1.2.0, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
