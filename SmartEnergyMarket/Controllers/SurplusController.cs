@@ -7,6 +7,8 @@ using SurplusBidRequest.DTOs;
 using SmartEnergyMarket.DTOs;
 using SmartEnergyMarket.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+
 
 
 
@@ -20,10 +22,15 @@ namespace SmartEnergyMarket.Controllers
         private readonly SurplusService _surplusService;
         private readonly ApplicationDbContext _context;
 
-        public SurplusController(ApplicationDbContext context, SurplusService surplusService)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+
+        public SurplusController(ApplicationDbContext context, SurplusService surplusService, UserManager<ApplicationUser> userManager)
         {
             _surplusService = surplusService;
             _context = context;
+            _userManager = userManager;
+            
         }
 
 
@@ -179,9 +186,74 @@ namespace SmartEnergyMarket.Controllers
 
             return Ok(dto);
         }
+[Authorize]
+[HttpGet("last-bid-summary")]
+public async Task<ActionResult<LastBidSummaryDto>> GetLastBidSummary()
+{
+    var userId = User.Claims
+        .Where(c => c.Type == ClaimTypes.NameIdentifier && Guid.TryParse(c.Value, out _))
+        .Select(c => c.Value)
+        .FirstOrDefault();
+
+    if (string.IsNullOrEmpty(userId))
+        return Unauthorized("User ID not found in token.");
+
+    // Get the user's latest bid
+    var lastBid = await _context.SurplusBids
+        .Where(b => b.UserId == userId)
+        .OrderByDescending(b => b.BidTime)
+        .Include(b => b.Block)
+        .FirstOrDefaultAsync();
+
+    if (lastBid == null)
+        return Ok(new { Message = "❌ No bids found." });
+
+    // Get the highest bid for that block
+    var highestBid = await _context.SurplusBids
+        .Where(b => b.BlockId == lastBid.BlockId)
+        .OrderByDescending(b => b.PricePerKwh)
+        .Select(b => b.PricePerKwh)
+        .FirstOrDefaultAsync();
+
+    var dto = new LastBidSummaryDto
+    {
+        BlockId = lastBid.BlockId!,
+        BidPrice = lastBid.PricePerKwh,
+        HighestBidPrice = highestBid,
+        BidTime = lastBid.BidTime,
+        IsAllocated = lastBid.Block.IsAllocated,
+        BlackoutStart = lastBid.Block.BlackoutStartTime,
+        BlackoutEnd = lastBid.Block.BlackoutEndTime,
+        BlockSizeKwh = lastBid.Block.BlockSizeKwh
+    };
+
+    return Ok(dto);
+}
+
+[Authorize]
+[HttpGet("my-reference-number")]
+public async Task<IActionResult> GetMyReferenceNumber()
+{
+    var userId = User.Claims
+        .Where(c => c.Type == ClaimTypes.NameIdentifier && Guid.TryParse(c.Value, out _))
+        .Select(c => c.Value)
+        .FirstOrDefault();
+
+    if (string.IsNullOrEmpty(userId))
+        return Unauthorized("User ID not found in token.");
+
+    var user = await _userManager.FindByIdAsync(userId);
+    if (user == null)
+        return NotFound("User not found.");
+
+    return Ok(new { ReferenceNumber = user.ReferenceNumber });
+}
 
 
-[HttpPost("allocate-blocks")]
+
+
+
+        [HttpPost("allocate-blocks")]
 public async Task<IActionResult> AllocateBlocks([FromQuery] DateTime blackoutStart, [FromQuery] DateTime blackoutEnd)
 {
     // Ensure DateTime.Kind is UTC to satisfy PostgreSQL
