@@ -270,6 +270,7 @@ public async Task<List<BlockAllocationResult>> AllocateBlocksByBlackoutAsync(Dat
                         BlockId = blockId, // ✅ Don't parse, just assign string directly
                         UserId = userId,
                         BidAmount = bid.PricePerKwh,
+                        BlockSize = bid.Block.BlockSizeKwh,
                         BidTime = bid.BidTime
                     });
 
@@ -285,6 +286,7 @@ public async Task<List<BlockAllocationResult>> AllocateBlocksByBlackoutAsync(Dat
 {
     BlockId = blockId,
     BidAmount = bid.PricePerKwh,
+    BlockSize = bid.Block.BlockSizeKwh,
     Time = DateTime.UtcNow
 });
         }
