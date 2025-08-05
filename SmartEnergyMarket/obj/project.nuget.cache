@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "aIbwk9h6YmnqLaF8VXt8gAyu67o3MIs/n2vI/Z8nWNXpyOBpQniLdtGzPAlxK9WUzo+PBxNfhlh49iI/viFTaw==",
+  "dgSpecHash": "157ZZ6mu0EfmB7e8G/sJcGuFwQWsk5Yx6/K1YCI2rogQFRaX797YSAtMoH5S19Ybw/SfTHJP4MXR8tJooRoYcA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartenergyMarket\\SmartEnergyMarket.csproj",
+  "projectFilePath": "C:\\Users\\Safni The Man\\Desktop\\Bididng_Backend\\SmartEnergyMarket\\SmartEnergyMarket.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Safni The Man\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Safni The Man\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.3.0\\microsoft.aspnetcore.authentication.abstractions.2.3.0.nupkg.sha512",
